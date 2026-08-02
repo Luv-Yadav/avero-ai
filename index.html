@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avero AI</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --sidebar: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --user: #111827;
+  --ai: #f1f5f9;
+  --hover: #f3f4f6;
+}
+
+body.dark {
+  --bg: #0b1120;
+  --panel: #111827;
+  --sidebar: #0f172a;
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --border: #243044;
+  --user: #2563eb;
+  --ai: #1e293b;
+  --hover: #1e293b;
+}
+
+body {
+  margin: 0;
+  height: 100vh;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  transition: .25s;
+}
+
+.app-shell {
+  height: 100vh;
+  display: flex;
+}
+
+/* SIDEBAR */
+
+.sidebar {
+  width: 270px;
+  background: var(--sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 23px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg,#6366f1,#06b6d4);
+  color: white;
+}
+
+.new-chat {
+  border: none;
+  background: var(--text);
+  color: var(--panel);
+  padding: 13px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.new-chat:hover {
+  opacity: .85;
+}
+
+.history-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+.history {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.history-item {
+  padding: 11px;
+  border-radius: 10px;
+  margin-bottom: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.history-item:hover {
+  background: var(--hover);
+}
+
+.delete-history {
+  float: right;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
+.sidebar-bottom {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+
+.theme-btn {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+/* MAIN */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topbar {
+  height: 65px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 25px;
+}
+
+.topbar-title {
+  font-weight: bold;
+}
+
+.status {
+  color: #22c55e;
+  font-size: 13px;
+}
+
+/* CHAT */
+
+.chat {
+  flex: 1;
+  overflow-y: auto;
+  padding: 35px 8%;
+}
+
+.welcome {
+  max-width: 750px;
+  margin: 90px auto;
+  text-align: center;
+}
+
+.welcome-icon {
+  width: 70px;
+  height: 70px;
+  margin: auto;
+  display: grid;
+  place-items: center;
+  border-radius: 22px;
+  background: linear-gradient(135deg,#6366f1,#06b6d4);
+  color: white;
+  font-size: 35px;
+  box-shadow: 0 10px 30px rgba(79,70,229,.25);
+}
+
+.welcome h1 {
+  margin: 20px 0 8px;
+  font-size: 34px;
+}
+
+.welcome p {
+  color: var(--muted);
+}
+
+.quick-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 25px;
+}
+
+.quick-btn {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  padding: 10px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+}
+
+.quick-btn:hover {
+  background: var(--hover);
+}
+
+.message {
+  display: flex;
+  margin-bottom: 20px;
+  animation: appear .2s ease;
+}
+
+@keyframes appear {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 75%;
+  padding: 13px 17px;
+  border-radius: 17px;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+
+.user .bubble {
+  background: var(--user);
+  color: white;
+  border-bottom-right-radius: 5px;
+}
+
+.ai .bubble {
+  background: var(--ai);
+  color: var(--text);
+  border-bottom-left-radius: 5px;
+}
+
+/* IMAGE PREVIEW */
+
+.image-preview {
+  display: none;
+  padding: 8px 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+
+.remove-image {
+  margin-left: 10px;
+  border: none;
+  background: #ef4444;
+  color: white;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+/* INPUT */
+
+.input-wrapper {
+  padding: 15px 8% 20px;
+  background: var(--panel);
+  border-top: 1px solid var(--border);
+}
+
+.input-box {
+  max-width: 900px;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  background: var(--panel);
+  box-shadow: 0 5px 20px rgba(0,0,0,.05);
+}
+
+.input-box input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  padding: 12px;
+  font-size: 15px;
+}
+
+.icon-btn,
+.send-btn {
+  border: none;
+  cursor: pointer;
+  border-radius: 12px;
+}
+
+.icon-btn {
+  width: 43px;
+  height: 43px;
+  background: transparent;
+  color: var(--text);
+  font-size: 19px;
+}
+
+.icon-btn:hover {
+  background: var(--hover);
+}
+
+.voice.listening {
+  background: #ef4444;
+  color: white;
+}
+
+.send-btn {
+  width: 45px;
+  height: 43px;
+  background: #111827;
+  color: white;
+  font-size: 18px;
+}
+
+body.dark .send-btn {
+  background: #2563eb;
+}
+
+.send-btn:disabled {
+  opacity: .5;
+}
+
+.footer-text {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+/* MOBILE */
+
+@media(max-width:700px) {
+
+  .sidebar {
+    display: none;
+  }
+
+  .chat {
+    padding: 20px 15px;
+  }
+
+  .input-wrapper {
+    padding: 10px;
+  }
+
+  .welcome {
+    margin: 60px auto;
+  }
+
+  .welcome h1 {
+    font-size: 28px;
+  }
+
+  .bubble {
+    max-width: 88%;
+  }
+
+  .topbar {
+    padding: 0 15px;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+  <div class="logo">
+    <div class="logo-icon">🤖</div>
+    Avero
+  </div>
+
+  <button class="new-chat" onclick="newChat()">
+    ＋ New Chat
+  </button>
+
+  <div class="history-label">
+    RECENT CHATS
+  </div>
+
+  <div id="history" class="history"></div>
+
+  <div class="sidebar-bottom">
+    <button class="theme-btn" onclick="toggleTheme()">
+      🌓 Toggle Theme
+    </button>
+  </div>
+
+</aside>
+
+
+<!-- MAIN -->
+
+<main class="main">
+
+  <header class="topbar">
+    <div class="topbar-title">
+      Avero AI
+    </div>
+
+    <div class="status">
+      ● Online
+    </div>
+  </header>
+
+
+  <!-- CHAT -->
+
+  <section id="chat" class="chat">
+
+    <div id="welcome" class="welcome">
+
+      <div class="welcome-icon">
+        ✨
+      </div>
+
+      <h1>
+        How can I help you?
+      </h1>
+
+      <p>
+        Ask Avero anything. You can also upload an image or use your voice.
+      </p>
+
+      <div class="quick-actions">
+
+        <button class="quick-btn"
+          onclick="quickMessage('Explain this in simple words')">
+          🧠 Explain Simply
+        </button>
+
+        <button class="quick-btn"
+          onclick="quickMessage('Give me some creative ideas')">
+          💡 Get Ideas
+        </button>
+
+        <button class="quick-btn"
+          onclick="quickMessage('Translate this into Hindi')">
+          🌐 Translate
+        </button>
+
+        <button class="quick-btn"
+          onclick="quickMessage('Give me an example')">
+          📝 Give Example
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- INPUT -->
+
+  <div class="input-wrapper">
+
+    <div id="imagePreview" class="image-preview">
+
+      <span id="imageName"></span>
+
+      <button
+        class="remove-image"
+        onclick="removeImage()">
+        Remove
+      </button>
+
+    </div>
+
+
+    <div class="input-box">
+
+      <input
+        id="imageInput"
+        type="file"
+        accept="image/*"
+        style="display:none"
+        onchange="selectImage()"
+      >
+
+      <button
+        class="icon-btn"
+        onclick="document.getElementById('imageInput').click()"
+        title="Upload Image">
+        📎
+      </button>
+
+
+      <input
+        id="message"
+        type="text"
+        placeholder="Message Avero..."
+        autocomplete="off"
+      >
+
+
+      <button
+        id="voiceBtn"
+        class="icon-btn voice"
+        onclick="startVoice()"
+        title="Voice Input">
+        🎤
+      </button>
+
+
+      <button
+        id="sendBtn"
+        class="send-btn"
+        onclick="sendMessage()">
+        ↑
+      </button>
+
+    </div>
+
+    <div class="footer-text">
+      Avero can make mistakes. Check important information.
+    </div>
+
+  </div>
+
+</main>
+
+</div>
+
+
+<script>
+
+const input =
+  document.getElementById("message");
+
+const chat =
+  document.getElementById("chat");
+
+const history =
+  document.getElementById("history");
+
+const sendBtn =
+  document.getElementById("sendBtn");
+
+const voiceBtn =
+  document.getElementById("voiceBtn");
+
+const imageInput =
+  document.getElementById("imageInput");
+
+const imagePreview =
+  document.getElementById("imagePreview");
+
+const imageName =
+  document.getElementById("imageName");
+
+
+let currentChat = [];
+
+let currentChatId = null;
+
+
+let chats =
+  JSON.parse(
+    localStorage.getItem("averoChats") || "[]"
+  );
+
+
+/* ENTER SEND */
+
+input.addEventListener(
+  "keydown",
+  function(event) {
+
+    if(event.key === "Enter") {
+      sendMessage();
+    }
+
+  }
+);
+
+
+/* QUICK ACTION */
+
+function quickMessage(text) {
+
+  input.value = text;
+
+  input.focus();
+
+}
+
+
+/* ADD MESSAGE */
+
+function addMessage(text,type) {
+
+  const messageDiv =
+    document.createElement("div");
+
+  messageDiv.className =
+    "message " + type;
+
+
+  const bubble =
+    document.createElement("div");
+
+  bubble.className =
+    "bubble";
+
+
+  bubble.textContent =
+    text;
+
+
+  messageDiv.appendChild(
+    bubble
+  );
+
+
+  chat.appendChild(
+    messageDiv
+  );
+
+
+  chat.scrollTop =
+    chat.scrollHeight;
+
+}
+
+
+/* IMAGE */
+
+function selectImage() {
+
+  const file =
+    imageInput.files[0];
+
+  if(!file) return;
+
+
+  imageName.textContent =
+    "🖼️ " + file.name;
+
+
+  imagePreview.style.display =
+    "block";
+
+}
+
+
+function removeImage() {
+
+  imageInput.value =
+    "";
+
+  imageName.textContent =
+    "";
+
+  imagePreview.style.display =
+    "none";
+
+}
+
+
+function convertImageToBase64(file) {
+
+  return new Promise(
+    function(resolve,reject) {
+
+      const reader =
+        new FileReader();
+
+
+      reader.onload =
+        function() {
+
+          resolve(
+            reader.result
+          );
+
+        };
+
+
+      reader.onerror =
+        reject;
+
+
+      reader.readAsDataURL(
+        file
+      );
+
+    }
+  );
+
+}
+
+
+/* SEND */
+
+async function sendMessage() {
+
+  const message =
+    input.value.trim();
+
+
+  const imageFile =
+    imageInput.files[0];
+
+
+  if(
+    (!message && !imageFile) ||
+    sendBtn.disabled
+  ) {
+
+    return;
+
+  }
+
+
+  const welcome =
+    document.getElementById(
+      "welcome"
+    );
+
+
+  if(welcome) {
+
+    welcome.remove();
+
+  }
+
+
+  if(message) {
+
+    addMessage(
+      message,
+      "user"
+    );
+
+
+    currentChat.push({
+
+      role: "user",
+
+      text: message
+
+    });
+
+  }
+
+
+  if(imageFile) {
+
+    addMessage(
+
+      "🖼️ Image: " +
+      imageFile.name,
+
+      "user"
+
+    );
+
+  }
+
+
+  input.value =
+    "";
+
+
+  sendBtn.disabled =
+    true;
+
+
+  sendBtn.textContent =
+    "•••";
+
+
+  try {
+
+    let imageData =
+      null;
+
+
+    if(imageFile) {
+
+      imageData =
+        await convertImageToBase64(
+          imageFile
+        );
+
+    }
+
+
+    const response =
+      await fetch(
+        "http://localhost:3000/chat",
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body:
+            JSON.stringify({
+
+              message:
+                message,
+
+              image:
+                imageData
+
+            })
+
+        }
+      );
+
+
+    const data =
+      await response.json();
+
+
+    if(data.reply) {
+
+      addMessage(
+        data.reply,
+        "ai"
+      );
+
+
+      speakAvero(
+        data.reply
+      );
+
+
+      currentChat.push({
+
+        role: "ai",
+
+        text:
+          data.reply
+
+      });
+
+
+      saveCurrentChat();
+
+    }
+
+    else {
+
+      addMessage(
+        "Sorry, something went wrong.",
+        "ai"
+      );
+
+    }
+
+
+  }
+
+  catch(error) {
+
+    console.error(
+      error
+    );
+
+
+    addMessage(
+
+      "Could not connect to Avero backend. Please make sure Avero.bat is running.",
+
+      "ai"
+
+    );
+
+  }
+
+
+  removeImage();
+
+
+  sendBtn.disabled =
+    false;
+
+
+  sendBtn.textContent =
+    "↑";
+
+
+  input.focus();
+
+}
+
+
+/* CHAT HISTORY */
+
+function saveCurrentChat() {
+
+  if(
+    currentChat.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  const firstMessage =
+    currentChat.find(
+      m => m.role === "user"
+    );
+
+
+  const title =
+    firstMessage
+      ? firstMessage.text.substring(
+          0,
+          30
+        )
+      : "New Chat";
+
+
+  if(
+    currentChatId !== null
+  ) {
+
+    const index =
+      chats.findIndex(
+        c =>
+          c.id ===
+          currentChatId
+      );
+
+
+    if(index >= 0) {
+
+      chats[index].messages =
+        currentChat;
+
+    }
+
+  }
+
+  else {
+
+    currentChatId =
+      Date.now();
+
+
+    chats.unshift({
+
+      id:
+        currentChatId,
+
+      title:
+        title,
+
+      messages:
+        currentChat
+
+    });
+
+  }
+
+
+  localStorage.setItem(
+
+    "averoChats",
+
+    JSON.stringify(
+      chats
+    )
+
+  );
+
+
+  renderHistory();
+
+}
+
+
+function renderHistory() {
+
+  history.innerHTML =
+    "";
+
+
+  chats.forEach(
+    chatItem => {
+
+      const item =
+        document.createElement(
+          "div"
+        );
+
+
+      item.className =
+        "history-item";
+
+
+      item.textContent =
+        chatItem.title;
+
+
+      item.onclick =
+        function() {
+
+          loadChat(
+            chatItem.id
+          );
+
+        };
+
+
+      const deleteBtn =
+        document.createElement(
+          "span"
+        );
+
+
+      deleteBtn.className =
+        "delete-history";
+
+
+      deleteBtn.textContent =
+        "×";
+
+
+      deleteBtn.onclick =
+        function(event) {
+
+          event.stopPropagation();
+
+
+          deleteChat(
+            chatItem.id
+          );
+
+        };
+
+
+      item.appendChild(
+        deleteBtn
+      );
+
+
+      history.appendChild(
+        item
+      );
+
+    }
+  );
+
+}
+
+
+function loadChat(id) {
+
+  const selectedChat =
+    chats.find(
+      c =>
+        c.id === id
+    );
+
+
+  if(!selectedChat) {
+
+    return;
+
+  }
+
+
+  currentChatId =
+    id;
+
+
+  currentChat =
+    selectedChat.messages;
+
+
+  chat.innerHTML =
+    "";
+
+
+  currentChat.forEach(
+    message => {
+
+      addMessage(
+
+        message.text,
+
+        message.role
+
+      );
+
+    }
+  );
+
+}
+
+
+function deleteChat(id) {
+
+  chats =
+    chats.filter(
+      c =>
+        c.id !== id
+    );
+
+
+  localStorage.setItem(
+
+    "averoChats",
+
+    JSON.stringify(
+      chats
+    )
+
+  );
+
+
+  renderHistory();
+
+
+  newChat();
+
+}
+
+
+/* NEW CHAT */
+
+function newChat() {
+
+  currentChat =
+    [];
+
+
+  currentChatId =
+    null;
+
+
+  chat.innerHTML = `
+
+    <div
+      id="welcome"
+      class="welcome"
+    >
+
+      <div class="welcome-icon">
+        ✨
+      </div>
+
+      <h1>
+        How can I help you?
+      </h1>
+
+      <p>
+        Ask Avero anything. You can also upload an image or use your voice.
+      </p>
+
+    </div>
+
+  `;
+
+
+  removeImage();
+
+
+  input.value =
+    "";
+
+
+  input.focus();
+
+}
+
+
+/* VOICE REPLY */
+
+function speakAvero(text) {
+
+  if(
+    !("speechSynthesis" in window)
+  ) {
+
+    return;
+
+  }
+
+
+  window.speechSynthesis.cancel();
+
+
+  const speech =
+    new SpeechSynthesisUtterance(
+      text
+    );
+
+
+  speech.lang =
+    "en-IN";
+
+
+  speech.rate =
+    1;
+
+
+  window.speechSynthesis.speak(
+    speech
+  );
+
+}
+
+
+/* VOICE INPUT */
+
+function startVoice() {
+
+  const SpeechRecognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+
+  if(!SpeechRecognition) {
+
+    alert(
+      "Voice input is not supported in this browser."
+    );
+
+
+    return;
+
+  }
+
+
+  const recognition =
+    new SpeechRecognition();
+
+
+  recognition.lang =
+    "en-IN";
+
+
+  recognition.continuous =
+    false;
+
+
+  recognition.interimResults =
+    false;
+
+
+  recognition.onstart =
+    function() {
+
+      voiceBtn.classList.add(
+        "listening"
+      );
+
+    };
+
+
+  recognition.onresult =
+    function(event) {
+
+      input.value =
+        event
+          .results[0][0]
+          .transcript;
+
+    };
+
+
+  recognition.onend =
+    function() {
+
+      voiceBtn.classList.remove(
+        "listening"
+      );
+
+    };
+
+
+  recognition.start();
+
+}
+
+
+/* THEME */
+
+function toggleTheme() {
+
+  document.body.classList.toggle(
+    "dark"
+  );
+
+
+  localStorage.setItem(
+
+    "averoTheme",
+
+    document.body.classList.contains(
+      "dark"
+    )
+      ? "dark"
+      : "light"
+
+  );
+
+}
+
+
+/* LOAD THEME */
+
+if(
+  localStorage.getItem(
+    "averoTheme"
+  ) === "dark"
+) {
+
+  document.body.classList.add(
+    "dark"
+  );
+
+}
+
+
+/* HISTORY */
+
+renderHistory();
+
+</script>
+
+</body>
+</html>
