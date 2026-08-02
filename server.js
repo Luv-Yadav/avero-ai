@@ -1,3 +1,4 @@
+```js
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
@@ -5,120 +6,386 @@ require("dotenv").config();
 const app = express();
 
 app.use(cors());
-
-// Text + Image data के लिए बड़ा limit
 app.use(express.json({ limit: "20mb" }));
 
 // Avero frontend
 app.use(express.static(__dirname));
 
+
+// ===============================
+// AVERO CHAT
+// Gemini First → Groq Fallback
+// ===============================
+
 app.post("/chat", async (req, res) => {
+
   try {
+
     const message = req.body.message || "";
     const image = req.body.image || null;
 
-    // Text और image दोनों नहीं हैं
     if (!message && !image) {
+
       return res.status(400).json({
         error: "Message or image is required"
       });
+
     }
+
+
+    // ===============================
+    // GEMINI REQUEST
+    // ===============================
 
     const parts = [];
 
-    // Text जोड़ना
     if (message) {
+
       parts.push({
         text: message
       });
+
     }
 
-    // Image जोड़ना
+
+    // Image for Gemini
     if (image) {
+
       const matches = image.match(
         /^data:(.+);base64,(.+)$/
       );
 
       if (!matches) {
+
         return res.status(400).json({
           error: "Invalid image format"
         });
+
       }
 
       parts.push({
+
         inline_data: {
+
           mime_type: matches[1],
+
           data: matches[2]
+
         }
+
       });
+
     }
 
-    // Gemini API को request
-    const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" +
+
+    try {
+
+      console.log("Trying Gemini...");
+
+
+      const geminiResponse = await fetch(
+
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=" +
         process.env.GEMINI_API_KEY,
+
+        {
+
+          method: "POST",
+
+          headers: {
+
+            "Content-Type":
+              "application/json"
+
+          },
+
+          body: JSON.stringify({
+
+            systemInstruction: {
+
+              parts: [
+
+                {
+
+                  text:
+                    "Your name is Avero. You are Avero AI. You were created by Luv Yadav, and your owner is Luv Yadav. If someone asks your name, always say your name is Avero. If someone asks who created you or who your owner is, always say Luv Yadav."
+
+                }
+
+              ]
+
+            },
+
+            contents: [
+
+              {
+
+                parts: parts
+
+              }
+
+            ]
+
+          })
+
+        }
+
+      );
+
+
+      const geminiData =
+        await geminiResponse.json();
+
+
+      console.log(
+
+        "Gemini response:",
+
+        JSON.stringify(
+          geminiData,
+          null,
+          2
+        )
+
+      );
+
+
+      // Gemini successful
+      if (geminiResponse.ok) {
+
+        const reply =
+
+          geminiData
+            .candidates?.[0]
+            ?.content
+            ?.parts?.[0]
+            ?.text
+
+          ||
+
+          "Sorry, I could not generate a response.";
+
+
+        return res.json({
+
+          reply: reply
+
+        });
+
+      }
+
+
+      console.log(
+
+        "Gemini failed. Switching to Groq..."
+
+      );
+
+
+    }
+
+    catch (geminiError) {
+
+      console.log(
+
+        "Gemini error. Switching to Groq..."
+
+      );
+
+    }
+
+
+    // ===============================
+    // GROQ FALLBACK
+    // ===============================
+
+    if (!process.env.GROQ_API_KEY) {
+
+      return res.status(500).json({
+
+        error:
+          "Gemini failed and GROQ_API_KEY is missing."
+
+      });
+
+    }
+
+
+    // Groq text fallback
+    // Image fallback फिलहाल नहीं
+    if (image) {
+
+      return res.json({
+
+        reply:
+          "Gemini is temporarily unavailable. Please try sending the image again later."
+
+      });
+
+    }
+
+
+    console.log(
+
+      "Trying Groq fallback..."
+
+    );
+
+
+    const groqResponse = await fetch(
+
+      "https://api.groq.com/openai/v1/chat/completions",
+
       {
+
         method: "POST",
 
         headers: {
-          "Content-Type": "application/json"
+
+          "Content-Type":
+            "application/json",
+
+          "Authorization":
+            "Bearer " +
+            process.env.GROQ_API_KEY
+
         },
 
         body: JSON.stringify({
-          systemInstruction: {
-  parts: [
-    {
-      text: "Your name is Avero. You are Avero AI. You were created by Luv Yadav, and your owner is Luv Yadav. If someone asks your name, always say your name is Avero. If someone asks who created you or who your owner is, always say Luv Yadav."
-    }
-  ]
-},
-          contents: [
+
+          model:
+            "llama-3.3-70b-versatile",
+
+          messages: [
+
             {
-              parts: parts
+
+              role:
+                "system",
+
+              content:
+                "Your name is Avero. You are Avero AI. You were created by Luv Yadav, and your owner is Luv Yadav. If someone asks your name, always say your name is Avero. If someone asks who created you or who your owner is, always say Luv Yadav."
+
+            },
+
+            {
+
+              role:
+                "user",
+
+              content:
+                message
+
             }
+
           ]
+
         })
+
       }
+
     );
 
-    const data = await response.json();
+
+    const groqData =
+      await groqResponse.json();
+
 
     console.log(
-      "Gemini API response:",
-      JSON.stringify(data, null, 2)
+
+      "Groq response:",
+
+      JSON.stringify(
+        groqData,
+        null,
+        2
+      )
+
     );
 
-    // Gemini API error
-    if (!response.ok) {
-      return res.status(response.status).json(data);
+
+    if (!groqResponse.ok) {
+
+      return res.status(
+        groqResponse.status
+      ).json({
+
+        error:
+          "Both Gemini and Groq failed.",
+
+        details:
+          groqData
+
+      });
+
     }
 
-    // AI का जवाब
-    const reply =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+
+    const groqReply =
+
+      groqData
+        .choices?.[0]
+        ?.message
+        ?.content
+
+      ||
+
       "Sorry, I could not generate a response.";
 
-    res.json({
-      reply: reply
+
+    return res.json({
+
+      reply:
+        groqReply
+
     });
 
-  } catch (error) {
+
+  }
+
+  catch (error) {
 
     console.error(
+
       "Server Error:",
+
       error
+
     );
 
+
     res.status(500).json({
-      error: "Something went wrong",
-      details: error.message
+
+      error:
+        "Something went wrong",
+
+      details:
+        error.message
+
     });
 
   }
+
 });
 
-app.listen(3000, () => {
-  console.log(
-    "Avero AI backend running on http://localhost:3000"
-  );
-});
+
+// ===============================
+// START SERVER
+// ===============================
+
+app.listen(
+
+  3000,
+
+  () => {
+
+    console.log(
+
+      "Avero AI backend running on http://localhost:3000"
+
+    );
+
+  }
+
+);
+```
