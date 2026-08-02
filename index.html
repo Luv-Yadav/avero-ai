@@ -1310,15 +1310,21 @@ function startVoice() {
     };
 
 
-  recognition.onresult =
-    function(event) {
+ recognition.onresult =
+  function(event) {
 
-      input.value =
-        event
-          .results[0][0]
-          .transcript;
+    let text =
+      event.results[0][0].transcript;
 
-    };
+    text = text.replace(
+      /\b(aero|avero|avaro|avro|averro|avira)\b/gi,
+      "Avero"
+    );
+
+    input.value =
+      text;
+
+  };
 
 
   recognition.onend =
