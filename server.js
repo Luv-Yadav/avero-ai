@@ -65,6 +65,13 @@ app.post("/chat", async (req, res) => {
         },
 
         body: JSON.stringify({
+          systemInstruction: {
+  parts: [
+    {
+      text: "Your name is Avero. You are Avero AI. If someone asks your name, always say your name is Avero."
+    }
+  ]
+},
           contents: [
             {
               parts: parts
