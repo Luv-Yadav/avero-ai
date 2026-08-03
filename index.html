@@ -851,16 +851,19 @@ async function sendMessage() {
 
           },
 
-          body:
-            JSON.stringify({
+body:
+  JSON.stringify({
 
-              message:
-                message,
+    message:
+      message,
 
-              image:
-                imageData
+    image:
+      imageData,
 
-            })
+    history:
+      currentChat
+
+  })
 
         }
       );
