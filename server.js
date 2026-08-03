@@ -123,9 +123,22 @@ app.post("/chat", async (req, res) => {
       });
     }
 
+// Groq Vision fallback
+let groqContent = [];
+
+if (message) {
+  groqContent.push({
+    type: "text",
+    text: message
+  });
+}
+
 if (image) {
-  return res.json({
-    reply: "Image AI fallback is not available yet."
+  groqContent.push({
+    type: "image_url",
+    image_url: {
+      url: image
+    }
   });
 }
 
@@ -146,8 +159,7 @@ if (image) {
         },
 
         body: JSON.stringify({
-          model:
-            "llama-3.3-70b-versatile",
+model: "qwen/qwen3.6-27b",
 
           messages: [
             {
