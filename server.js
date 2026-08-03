@@ -198,10 +198,13 @@ model: "qwen/qwen3.6-27b",
       });
     }
 
-    const groqReply =
-      groqData.choices?.[0]?.message?.content ||
-      "Sorry, I could not generate a response.";
+let groqReply =
+  groqData.choices?.[0]?.message?.content ||
+  "Sorry, I could not generate a response.";
 
+groqReply = groqReply
+  .replace(/<think>[\s\S]*?<\/think>/gi, "")
+  .trim();
     return res.json({
       reply: groqReply
     });
