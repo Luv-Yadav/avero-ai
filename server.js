@@ -11,9 +11,11 @@ app.use(express.static(__dirname));
 
 app.post("/chat", async (req, res) => {
   try {
-    const message = req.body.message || "";
-    const image = req.body.image || null;
-
+const message = req.body.message || "";
+const image = req.body.image || null;
+const history = Array.isArray(req.body.history)
+  ? req.body.history
+  : [];
     if (!message && !image) {
       return res.status(400).json({
         error: "Message or image is required"
@@ -73,11 +75,23 @@ app.post("/chat", async (req, res) => {
               ]
             },
 
-            contents: [
-              {
-                parts: parts
-              }
-            ]
+contents: [
+  ...history
+    .filter(item => item.role === "user" || item.role === "ai")
+    .map(item => ({
+      role: item.role === "ai" ? "model" : "user",
+      parts: [
+        {
+          text: item.text
+        }
+      ]
+    })),
+
+  {
+    role: "user",
+    parts: parts
+  }
+]
           })
         }
       );
@@ -170,10 +184,19 @@ model: "qwen/qwen3.6-27b",
             },
 
             {
-              role: "user",
+...history
+  .filter(item => item.role === "user" || item.role === "ai")
+  .map(item => ({
+    role: item.role === "ai"
+      ? "assistant"
+      : "user",
+    content: item.text
+  })),
 
-              content: groqContent
-            }
+{
+  role: "user",
+  content: groqContent
+}
           ]
         })
       }
