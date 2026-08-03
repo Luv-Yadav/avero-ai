@@ -172,7 +172,7 @@ model: "qwen/qwen3.6-27b",
             {
               role: "user",
 
-              content: message
+              content: groqContent
             }
           ]
         })
