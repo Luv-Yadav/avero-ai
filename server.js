@@ -125,7 +125,7 @@ app.post("/chat", async (req, res) => {
 
 if (image) {
   return res.json({
-    reply: "Image AI is being updated. Please try again soon."
+    reply: "Image AI fallback is not available yet."
   });
 }
 
