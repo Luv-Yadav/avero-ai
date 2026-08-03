@@ -123,13 +123,11 @@ app.post("/chat", async (req, res) => {
       });
     }
 
-    // Groq fallback currently supports text
-    if (image) {
-      return res.json({
-        reply:
-          "Gemini is temporarily unavailable. Please try the image again later."
-      });
-    }
+if (image) {
+  return res.json({
+    reply: "Image AI is being updated. Please try again soon."
+  });
+}
 
     console.log(
       "Trying Groq fallback..."
