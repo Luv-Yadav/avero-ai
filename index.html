@@ -851,6 +851,7 @@ async function sendMessage() {
 
           },
 
+```js
 body:
   JSON.stringify({
 
@@ -861,9 +862,10 @@ body:
       imageData,
 
     history:
-      currentChat
+      currentChat.slice(0, -1)
 
   })
+```
 
         }
       );
